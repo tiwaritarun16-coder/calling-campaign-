@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard · Calling Veera{% endblock %}
+{% block content %}
+<div id="dashboard" class="page-title-row">
+  <div>
+    <div class="eyebrow">ADMIN CONTROL CENTER</div>
+    <h1>Dashboard</h1>
+    <p class="muted">Manage your callers, leads, assignments and WhatsApp message from one screen.</p>
+  </div>
+  <a class="button primary" href="{{ url_for('admin_export') }}">⇩ Export results</a>
+</div>
+
+<div class="metric-grid">
+  <div class="metric purple"><span>📋</span><strong>{{ total_leads }}</strong><small>Total leads</small></div>
+  <div class="metric blue"><span>🔗</span><strong>{{ total_assignments }}</strong><small>Assignments</small></div>
+  <div class="metric green"><span>✓</span><strong>{{ completed }}</strong><small>Completed</small></div>
+  <div class="metric orange"><span>⏳</span><strong>{{ pending }}</strong><small>Pending</small></div>
+  <div class="metric red"><span>!</span><strong>{{ unreachable }}</strong><small>Not reachable</small></div>
+  <div class="metric yellow"><span>↻</span><strong>{{ call_again }}</strong><small>Call again</small></div>
+</div>
+
+<section id="team" class="section-block">
+  <div class="section-heading"><div><div class="eyebrow">TEAM</div><h2>Callers</h2><p class="muted">Add callers individually or import a CSV.</p></div></div>
+  <div class="grid2">
+    <section class="card feature-card">
+      <div class="icon-box purple-bg">👥</div><h3>Import callers</h3>
+      <p class="muted">CSV: <code>Name, Username, Password, Phone</code></p>
+      <form method="post" action="{{ url_for('import_callers') }}" enctype="multipart/form-data" class="form-stack compact">
+        <input type="file" name="file" accept=".csv" required>
+        <button class="primary" type="submit">Upload callers</button>
+      </form>
+      <hr>
+      <h3>Add one caller</h3>
+      <form method="post" action="{{ url_for('add_caller') }}" class="form-stack compact">
+        <div class="row"><input name="name" placeholder="Full name" required><input name="username" placeholder="Username" required></div>
+        <div class="row"><input name="password" type="password" placeholder="Password (6+ chars)" minlength="6" required><input name="phone" placeholder="Phone" inputmode="tel"></div>
+        <button class="primary" type="submit">+ Add caller</button>
+      </form>
+    </section>
+
+    <section id="leads" class="card feature-card">
+      <div class="icon-box blue-bg">📋</div><h3>Leads</h3>
+      <p class="muted">Import your lead list or add contacts one by one.</p>
+      <form method="post" action="{{ url_for('import_leads') }}" enctype="multipart/form-data" class="form-stack compact">
+        <input type="file" name="file" accept=".csv" required>
+        <button class="primary" type="submit">Upload leads</button>
+      </form>
+      <p class="small-note">CSV: <code>Name, Phone</code></p>
+      <hr>
+      <h3>Add one lead</h3>
+      <form method="post" action="{{ url_for('add_lead') }}" class="form-stack compact">
+        <div class="row"><input name="name" placeholder="Lead name" required><input name="phone" placeholder="Phone" inputmode="tel" required></div>
+        <button class="primary" type="submit">+ Add lead</button>
+      </form>
+    </section>
+  </div>
+</section>
+
+<section id="assign" class="section-block">
+  <div class="section-heading"><div><div class="eyebrow">WORKFLOW</div><h2>Assign leads</h2><p class="muted">Choose how leads should be distributed to callers.</p></div></div>
+  <section class="card assign-card">
+    <form method="post" action="{{ url_for('assign_leads') }}" class="form-stack">
+      <label>Assignment mode
+        <select name="mode">
+          <option value="all">Give every selected caller every lead</option>
+          <option value="round">Round-robin: distribute leads across selected callers</option>
+        </select>
+      </label>
+      <div class="caller-picker">
+        {% for c in callers %}
+        <label class="caller-check"><input type="checkbox" name="caller_ids" value="{{c.id}}"><span><b>{{c.name}}</b><small>{{c.username}}{% if c.phone %} · {{c.phone}}{% endif %}</small></span></label>
+        {% else %}<p class="muted">Create callers first.</p>{% endfor %}
+      </div>
+      <button class="primary big" type="submit">🔗 Assign leads</button>
+    </form>
+  </section>
+</section>
+
+<section id="monitoring" class="section-block">
+  <div class="section-heading"><div><div class="eyebrow">MONITORING</div><h2>Caller performance</h2><p class="muted">A quick view of assigned work and call results.</p></div></div>
+  <section class="card table-card"><div class="tablewrap"><table><thead><tr><th>Caller</th><th>Assigned</th><th>Completed</th><th>Pending</th><th>Not reachable</th><th>Call again</th><th>Attempts</th></tr></thead><tbody>{% for s in stats %}<tr><td><div class="table-person"><div class="mini-avatar">{{s.caller.name[:1]|upper}}</div><span><b>{{s.caller.name}}</b><small>{{s.caller.username}}</small></span></div></td><td><b>{{s.total}}</b></td><td><span class="table-badge green-badge">{{s.completed}}</span></td><td>{{s.pending}}</td><td><span class="table-badge red-badge">{{s.unreachable}}</span></td><td>{{s.call_again}}</td><td>{{s.attempts}}</td></tr>{% else %}<tr><td colspan="7" class="empty-cell">No callers yet.</td></tr>{% endfor %}</tbody></table></div></section>
+</section>
+
+<section id="settings" class="section-block">
+  <div class="section-heading"><div><div class="eyebrow">SETTINGS</div><h2>WhatsApp & admins</h2><p class="muted">Control the default message and manage administrator access.</p></div></div>
+  <div class="grid2">
+    <section class="card feature-card">
+      <div class="icon-box green-bg">💬</div><h3>WhatsApp message</h3>
+      <form method="post" action="{{ url_for('settings') }}" class="form-stack">
+        <label>Default message<textarea name="template" rows="6" placeholder="Hello {name}...">{{template}}</textarea></label>
+        <div class="tip-inline">Use <code>{name}</code> and it will be replaced with the lead's name.</div>
+        <label>WhatsApp country code<input name="country" value="{{country}}" inputmode="numeric" placeholder="91"></label>
+        <button class="primary" type="submit">Save WhatsApp settings</button>
+      </form>
+    </section>
+
+    <section class="card feature-card">
+      <div class="icon-box orange-bg">🔐</div><h3>Administrators <span class="count-badge">{{admins|length}} / 3</span></h3>
+      <div class="admin-list">{% for a in admins %}<div class="admin-row"><div class="mini-avatar">{{a.name[:1]|upper}}</div><span><b>{{a.name}}</b><small>{{a.username}}</small></span></div>{% endfor %}</div>
+      {% if admins|length < 3 %}
+      <hr><h3>Add administrator</h3>
+      <form method="post" action="{{ url_for('add_admin') }}" class="form-stack compact"><div class="row"><input name="name" placeholder="Name" required><input name="username" placeholder="Username" required></div><input name="password" type="password" placeholder="Password (6+ chars)" minlength="6" required><button class="primary" type="submit">+ Add admin</button></form>
+      {% endif %}
+    </section>
+  </div>
+</section>
+
+<section class="danger-card">
+  <div><strong>⚠️ Clear campaign data</strong><p>This removes all leads and assignments but keeps admin and caller accounts.</p></div>
+  <form method="post" action="{{url_for('clear_all')}}" onsubmit="return confirm('Clear all leads and assignments? Accounts will stay.');"><button class="danger-button" type="submit">Clear data</button></form>
+</section>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Setup · Calling Veera{% endblock %}
+{% block content %}
+<div class="center-page">
+  <section class="login-card setup-card">
+    <div class="login-logo">V</div>
+    <div class="hero-badge">🚀 First-time setup</div>
+    <h1>Create your admin account</h1>
+    <p class="muted">This account will manage callers, leads, assignments and WhatsApp settings. You can add up to 3 admins later.</p>
+    <form method="post" class="form-stack">
+      <label>Your name<input name="name" placeholder="e.g. Tarun Kumar" required></label>
+      <label>Username<input name="username" autocomplete="username" placeholder="Choose a username" required></label>
+      <label>Password<input name="password" type="password" minlength="6" autocomplete="new-password" placeholder="At least 6 characters" required></label>
+      <button class="primary big" type="submit">Create admin →</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

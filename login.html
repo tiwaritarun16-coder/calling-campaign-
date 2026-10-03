@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Login · Calling Veera{% endblock %}
+{% block content %}
+<div class="login-page">
+  <section class="login-hero">
+    <div class="hero-badge">📞 Calling made simple</div>
+    <h1>Call more leads.<br><span>Track every result.</span></h1>
+    <p>Calling Veera keeps your callers, leads, calls and WhatsApp follow-ups in one simple place.</p>
+    <div class="hero-points">
+      <div>📞 <span>One-tap phone calling</span></div>
+      <div>💬 <span>Prefilled WhatsApp messages</span></div>
+      <div>📊 <span>Simple team monitoring</span></div>
+    </div>
+  </section>
+
+  <section class="login-card">
+    <div class="login-logo">V</div>
+    <h2>Welcome back</h2>
+    <p class="muted">Choose your account and sign in.</p>
+    <form method="post" class="form-stack">
+      <label>Login as
+        <select name="role" required>
+          <option value="admin">Admin</option>
+          <option value="caller">Caller</option>
+        </select>
+      </label>
+      <label>Username
+        <input name="username" autocomplete="username" placeholder="Enter username" required>
+      </label>
+      <label>Password
+        <input name="password" type="password" autocomplete="current-password" placeholder="Enter password" required>
+      </label>
+      <button class="primary big" type="submit">Sign in →</button>
+    </form>
+    <p class="login-hint">Admins manage the team. Callers see only their assigned leads.</p>
+  </section>
+</div>
+{% endblock %}

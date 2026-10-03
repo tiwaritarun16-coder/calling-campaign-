@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}My Calls · Calling Veera{% endblock %}
+{% block content %}
+<div id="top" class="page-title-row">
+  <div>
+    <div class="eyebrow">CALLER WORKSPACE</div>
+    <h1>Good day, {{ user_name }} 👋</h1>
+    <p class="muted">Your assigned leads are ready. Call, update the result, and move to the next one.</p>
+  </div>
+  <a class="button secondary" href="{{ url_for('caller_export') }}">⇩ Export</a>
+</div>
+
+{% set total = assignments|length %}
+{% set completed_count = assignments|selectattr('status','equalto','Completed')|list|length %}
+{% set pending_count = assignments|selectattr('status','equalto','Pending')|list|length %}
+{% set again_count = assignments|selectattr('status','equalto','Call again')|list|length %}
+<div class="metric-grid caller-metrics">
+  <div class="metric purple"><span>📋</span><strong>{{ total }}</strong><small>Total leads</small></div>
+  <div class="metric green"><span>✓</span><strong>{{ completed_count }}</strong><small>Completed</small></div>
+  <div class="metric orange"><span>↻</span><strong>{{ again_count }}</strong><small>Call again</small></div>
+  <div class="metric blue"><span>⏳</span><strong>{{ pending_count }}</strong><small>Pending</small></div>
+</div>
+
+{% if assignments %}
+<section class="quick-start card">
+  <div>
+    <div class="eyebrow">READY TO CALL</div>
+    <h2>Start with your next lead</h2>
+    <p class="muted">Tap CALL to open the Android phone dialer. After the call, save the result below.</p>
+  </div>
+  <a class="button call big-action" href="{{ url_for('caller_call', assignment_id=assignments[0].id) }}">📞 CALL NEXT</a>
+</section>
+{% endif %}
+
+<section id="leads" class="card">
+  <div class="section-head"><div><h2>My leads</h2><p class="muted">Search and filter your assigned contacts.</p></div></div>
+  <form class="filters" method="get">
+    <input name="q" value="{{ q }}" placeholder="🔎 Search name or phone" aria-label="Search leads">
+    <select name="status" aria-label="Filter by status">
+      <option value="all" {% if status=='all' %}selected{% endif %}>All statuses</option>
+      {% for x in ['Pending','Completed','Call again','Not reachable'] %}<option value="{{x}}" {% if status==x %}selected{% endif %}>{{x}}</option>{% endfor %}
+    </select>
+    <button class="primary" type="submit">Filter</button>
+  </form>
+</section>
+
+<div class="leadlist">
+{% for a in assignments %}
+  <article class="lead-card">
+    <div class="lead-top">
+      <div class="lead-avatar">{{ a.lead.name[:1]|upper }}</div>
+      <div class="lead-info">
+        <h2>{{ a.lead.name }}</h2>
+        <a class="phone-link" href="tel:{{ a.lead.phone }}">{{ a.lead.phone }}</a>
+        <div class="lead-meta">{{ a.attempts }} attempt{{ '' if a.attempts==1 else 's' }}</div>
+      </div>
+      <span class="status {{a.status|lower|replace(' ','-')}}">{{ a.status }}</span>
+    </div>
+
+    <div class="lead-actions">
+      <a class="button call" href="{{url_for('caller_call',assignment_id=a.id)}}">📞 CALL</a>
+      <a class="button whatsapp" href="{{url_for('caller_whatsapp',assignment_id=a.id)}}">💬 WhatsApp</a>
+    </div>
+
+    <details class="result-panel">
+      <summary>Update result <span>⌄</span></summary>
+      <form method="post" action="{{url_for('update_assignment',assignment_id=a.id)}}" class="result-form">
+        <label>Call status
+          <select name="status">
+            {% for x in ['Pending','Completed','Call again','Not reachable'] %}<option value="{{x}}" {% if a.status==x %}selected{% endif %}>{{x}}</option>{% endfor %}
+          </select>
+        </label>
+        <label>Notes
+          <input name="notes" value="{{a.notes or ''}}" placeholder="What did the lead say?">
+        </label>
+        <input type="hidden" name="called" value="0">
+        <button class="primary" type="submit">Save result ✓</button>
+      </form>
+    </details>
+  </article>
+{% else %}
+  <section class="empty card">
+    <div class="empty-icon">📋</div><h2>No leads assigned yet</h2>
+    <p class="muted">Ask an admin to import leads and assign them to you.</p>
+  </section>
+{% endfor %}
+</div>
+
+<section id="help" class="tip-card">
+  <strong>💡 Quick tip</strong>
+  <span>Use CALL to start the phone call, then return here and save the result. WhatsApp opens with the admin's prefilled message.</span>
+</section>
+{% endblock %}
